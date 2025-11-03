@@ -171,6 +171,7 @@ jobs:
                   - "3000:3000"
                 environment:
                   - NODE_ENV=production
+                  - NEXT_PUBLIC_API_URL=http://placeholder-backend:8080/api
                 restart: unless-stopped
                 networks:
                   - todo-network
@@ -189,7 +190,17 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /opt/todo-app/frontend
+
+            # Update docker-compose.yml with new image tag and backend URL
             sed -i "s|image:.*todo-frontend.*|image: ${{ env.FRONTEND_IMAGE }}:${{ needs.build-frontend.outputs.frontend-tag }}|g" docker-compose.yml
+
+            # Add backend URL environment variable
+            if ! grep -q "NEXT_PUBLIC_API_URL" docker-compose.yml; then
+              sed -i '/environment:/a\      - NEXT_PUBLIC_API_URL=http://${{ needs.get-infrastructure.outputs.backend-ip }}:8080/api' docker-compose.yml
+            else
+              sed -i "s|NEXT_PUBLIC_API_URL=.*|NEXT_PUBLIC_API_URL=http://${{ needs.get-infrastructure.outputs.backend-ip }}:8080/api|g" docker-compose.yml
+            fi
+
             docker compose pull && docker compose up -d --force-recreate
             sleep 10
             curl -f http://localhost:3000 || exit 1
