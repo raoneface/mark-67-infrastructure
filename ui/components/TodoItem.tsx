@@ -73,94 +73,102 @@ export default function TodoItem({ todo }: TodoItemProps) {
   };
 
   return (
-    <Card
-      className={`transition-opacity ${todo.completed ? "opacity-60" : ""}`}
+    <div
+      className={`bg-gray-50 rounded-xl p-4 border-2 border-transparent hover:border-gray-200 transition-all ${
+        todo.completed ? "opacity-60" : ""
+      }`}
     >
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <Checkbox
-            checked={todo.completed}
-            onCheckedChange={handleToggleComplete}
-            disabled={updateTodo.isPending}
-            className="mt-1"
-          />
+      <div className="flex items-start gap-4">
+        <Checkbox
+          checked={todo.completed}
+          onCheckedChange={handleToggleComplete}
+          disabled={updateTodo.isPending}
+          className="mt-1 scale-125"
+        />
 
-          <div className="flex-1 min-w-0">
-            {isEditing ? (
-              <div className="space-y-2">
-                <Input
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  placeholder="Todo title..."
-                />
-                <Input
-                  value={editDescription}
-                  onChange={(e) => setEditDescription(e.target.value)}
-                  placeholder="Description (optional)..."
-                />
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={handleSaveEdit}
-                    disabled={!editTitle.trim() || updateTodo.isPending}
-                  >
-                    <Check className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleCancelEdit}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
+        <div className="flex-1 min-w-0">
+          {isEditing ? (
+            <div className="space-y-3">
+              <Input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="Task title..."
+                className="border-2 border-gray-200 focus:border-blue-500 rounded-lg"
+              />
+              <Input
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Description (optional)..."
+                className="border-2 border-gray-200 focus:border-blue-500 rounded-lg"
+              />
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  onClick={handleSaveEdit}
+                  disabled={!editTitle.trim() || updateTodo.isPending}
+                  className="bg-green-600 hover:bg-green-700 rounded-lg"
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCancelEdit}
+                  className="rounded-lg"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
-            ) : (
-              <div>
-                <h3
-                  className={`font-medium ${
+            </div>
+          ) : (
+            <div>
+              <h3
+                className={`font-medium text-lg ${
+                  todo.completed
+                    ? "line-through text-gray-500"
+                    : "text-gray-800"
+                }`}
+              >
+                {todo.title}
+              </h3>
+              {todo.description && (
+                <p
+                  className={`text-gray-600 mt-1 ${
                     todo.completed ? "line-through" : ""
                   }`}
                 >
-                  {todo.title}
-                </h3>
-                {todo.description && (
-                  <p
-                    className={`text-sm text-gray-600 mt-1 ${
-                      todo.completed ? "line-through" : ""
-                    }`}
-                  >
-                    {todo.description}
-                  </p>
-                )}
-                <p className="text-xs text-gray-400 mt-2">
-                  Created: {new Date(todo.createdAt).toLocaleDateString()}
+                  {todo.description}
                 </p>
-              </div>
-            )}
-          </div>
-
-          {!isEditing && (
-            <div className="flex gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setIsEditing(true)}
-              >
-                <Edit2 className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleDelete}
-                disabled={deleteTodo.isPending}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              )}
+              <p className="text-xs text-gray-400 mt-3">
+                Created {new Date(todo.createdAt).toLocaleDateString()}
+              </p>
             </div>
           )}
         </div>
-      </CardContent>
-    </Card>
+
+        {!isEditing && (
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setIsEditing(true)}
+              className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+            >
+              <Edit2 className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleDelete}
+              disabled={deleteTodo.isPending}
+              className="text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
