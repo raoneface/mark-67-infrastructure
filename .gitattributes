@@ -1,0 +1,177 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Source code
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.java text eol=lf
+*.xml text eol=lf
+*.properties text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.sass text eol=lf
+*.less text eol=lf
+*.html text eol=lf
+*.htm text eol=lf
+*.php text eol=lf
+*.py text eol=lf
+*.rb text eol=lf
+*.go text eol=lf
+*.rs text eol=lf
+*.c text eol=lf
+*.cpp text eol=lf
+*.h text eol=lf
+*.hpp text eol=lf
+
+# Configuration files
+*.conf text eol=lf
+*.config text eol=lf
+*.ini text eol=lf
+*.toml text eol=lf
+*.env text eol=lf
+.env* text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.dockerignore text eol=lf
+Dockerfile text eol=lf
+Dockerfile.* text eol=lf
+
+# Shell scripts
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+*.fish text eol=lf
+
+# Terraform
+*.tf text eol=lf
+*.tfvars text eol=lf
+*.hcl text eol=lf
+
+# Puppet
+*.pp text eol=lf
+*.erb text eol=lf
+
+# Docker Compose
+docker-compose*.yml text eol=lf
+
+# Package managers
+package.json text eol=lf
+package-lock.json text eol=lf
+yarn.lock text eol=lf
+pom.xml text eol=lf
+build.gradle text eol=lf
+Gemfile text eol=lf
+Gemfile.lock text eol=lf
+requirements.txt text eol=lf
+Pipfile text eol=lf
+Pipfile.lock text eol=lf
+Cargo.toml text eol=lf
+Cargo.lock text eol=lf
+go.mod text eol=lf
+go.sum text eol=lf
+
+# Windows specific files
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Maven wrapper (Windows)
+mvnw.cmd text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.7z binary
+*.rar binary
+*.jar binary
+*.war binary
+*.ear binary
+*.class binary
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+
+# Database files
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+
+# Key files
+*.pem binary
+*.key binary
+*.p12 binary
+*.pfx binary
+*.jks binary
+
+# Archives and compressed files
+*.tar.gz binary
+*.tgz binary
+*.tar.bz2 binary
+*.tbz2 binary
+*.tar.xz binary
+*.txz binary
+
+# Media files
+*.mp3 binary
+*.mp4 binary
+*.avi binary
+*.mov binary
+*.wmv binary
+*.flv binary
+*.webm binary
+*.ogg binary
+*.wav binary
+
+# Office documents
+*.doc binary
+*.docx binary
+*.xls binary
+*.xlsx binary
+*.ppt binary
+*.pptx binary
+
+# Linguist overrides for better language detection
+*.js linguist-language=JavaScript
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
+*.jsx linguist-language=JavaScript
+*.java linguist-language=Java
+*.tf linguist-language=HCL
+*.pp linguist-language=Puppet
+
+# Mark generated files
+package-lock.json linguist-generated=true
+yarn.lock linguist-generated=true
+*.min.js linguist-generated=true
+*.min.css linguist-generated=true
+dist/* linguist-generated=true
+build/* linguist-generated=true
+target/* linguist-generated=true
+.next/* linguist-generated=true
+
+# Mark vendor files
+node_modules/* linguist-vendored=true
+vendor/* linguist-vendored=true
+third_party/* linguist-vendored=true
