@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// Use current backend IP directly
-const API_BASE_URL = "http://18.209.157.18:8080/api";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
