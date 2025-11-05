@@ -10,28 +10,18 @@ public class CorsConfig implements WebMvcConfigurer {
 
         @Override
         public void addCorsMappings(CorsRegistry registry) {
-                // API endpoints
+                // API endpoints - Allow all origins for production deployment
                 registry.addMapping("/api/**")
-                                .allowedOrigins(
-                                                "http://localhost:3000",
-                                                "http://localhost:3001",
-                                                "http://127.0.0.1:3000",
-                                                "http://44.223.101.20:3000" // Current frontend EC2 IP
-                                )
+                                .allowedOriginPatterns("*") // Allow all origins for flexibility
                                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                                 .allowedHeaders("*")
-                                .allowCredentials(true);
+                                .allowCredentials(false); // Set to false when using allowedOriginPatterns("*")
 
                 // Actuator endpoints
                 registry.addMapping("/actuator/**")
-                                .allowedOrigins(
-                                                "http://localhost:3000",
-                                                "http://localhost:3001",
-                                                "http://127.0.0.1:3000",
-                                                "http://44.223.101.20:3000" // Current frontend EC2 IP
-                                )
+                                .allowedOriginPatterns("*") // Allow all origins for flexibility
                                 .allowedMethods("GET", "OPTIONS")
                                 .allowedHeaders("*")
-                                .allowCredentials(true);
+                                .allowCredentials(false); // Set to false when using allowedOriginPatterns("*")
         }
 }
