@@ -1,45 +1,58 @@
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import { api } from "@/lib/api";
 
-interface HealthResponse {
+interface HealthData {
   status: string;
-  components?: {
-    [key: string]: {
-      status: string;
-      details?: any;
-    };
+  timestamp: string;
+  application: string;
+  version: string;
+  database: {
+    status: string;
+    type: string;
+    todoCount: number;
+    error?: string;
+  };
+  system: {
+    totalMemory: number;
+    freeMemory: number;
+    maxMemory: number;
+    availableProcessors: number;
+  };
+  services: {
+    [key: string]: string;
   };
 }
 
-const healthApi = axios.create({
-  baseURL: "http://34.237.223.247:8080", // Direct actuator endpoint without /api prefix
-  timeout: 5000,
-});
+interface HealthResponse {
+  message: string;
+  data: HealthData;
+  timestamp: string;
+  statusCode: number;
+}
 
 export const useHealth = () => {
-  return useQuery<HealthResponse>({
+  return useQuery<HealthData>({
     queryKey: ["health"],
     queryFn: async () => {
       try {
-        const response = await healthApi.get("/actuator/health");
-        return response.data;
+        const response = await api.get<HealthResponse>("/health");
+        return response.data.data;
       } catch (error) {
-        // If CORS error or network error, try to infer health from API availability
-        if (
-          axios.isAxiosError(error) &&
-          (error.code === "ERR_NETWORK" || error.message.includes("CORS"))
-        ) {
-          // Try a simple API call to check if backend is responsive
-          try {
-            await axios.get("http://34.237.223.247:8080/api/todos", {
-              timeout: 3000,
-            });
-            return { status: "UP" }; // Backend is responsive via API
-          } catch {
-            throw error; // Backend is truly down
-          }
+        // If the custom health endpoint fails, try to infer health from API availability
+        try {
+          await api.get("/todos");
+          return { 
+            status: "UP",
+            timestamp: new Date().toISOString(),
+            application: "Todo Application",
+            version: "1.0.0",
+            database: { status: "UNKNOWN", type: "MongoDB", todoCount: 0 },
+            system: { totalMemory: 0, freeMemory: 0, maxMemory: 0, availableProcessors: 0 },
+            services: { todoService: "UP" }
+          };
+        } catch {
+          throw error; // Backend is truly down
         }
-        throw error;
       }
     },
     refetchInterval: 30000, // Refetch every 30 seconds

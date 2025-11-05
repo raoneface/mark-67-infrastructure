@@ -33,6 +33,28 @@ export interface TodoRequest {
   completed?: boolean;
 }
 
+export interface HealthData {
+  status: string;
+  timestamp: string;
+  application: string;
+  version: string;
+  database: {
+    status: string;
+    type: string;
+    todoCount: number;
+    error?: string;
+  };
+  system: {
+    totalMemory: number;
+    freeMemory: number;
+    maxMemory: number;
+    availableProcessors: number;
+  };
+  services: {
+    [key: string]: string;
+  };
+}
+
 export const todoApi = {
   getAllTodos: () => api.get<ApiResponse<Todo[]>>("/todos"),
   getTodosByStatus: (completed: boolean) =>
@@ -43,4 +65,8 @@ export const todoApi = {
   updateTodo: (id: string, todo: TodoRequest) =>
     api.put<ApiResponse<Todo>>(`/todos/${id}`, todo),
   deleteTodo: (id: string) => api.delete<ApiResponse<void>>(`/todos/${id}`),
+};
+
+export const healthApi = {
+  getHealth: () => api.get<ApiResponse<HealthData>>("/health"),
 };
