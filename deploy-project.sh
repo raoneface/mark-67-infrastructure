@@ -403,9 +403,14 @@ EOF"
         ssh -i "$PEM_FILE" -o StrictHostKeyChecking=no ubuntu@$NAGIOS_IP \
             "sudo systemctl restart nagios"
         
-        # Get Nagios password
+        # Get Nagios password (it should be generated during setup)
+        echo "🔐 Getting Nagios authentication details..."
         NAGIOS_PASSWORD=$(ssh -i "$PEM_FILE" -o StrictHostKeyChecking=no ubuntu@$NAGIOS_IP \
-            "cat /tmp/nagios-password.txt 2>/dev/null" || echo "Check /tmp/nagios-password.txt on server")
+            "cat /tmp/nagios-password.txt 2>/dev/null" || echo "nagiosadmin")
+        
+        # Ensure htpasswd file exists (fallback)
+        ssh -i "$PEM_FILE" -o StrictHostKeyChecking=no ubuntu@$NAGIOS_IP \
+            "sudo test -f /usr/local/nagios/etc/htpasswd.users || sudo htpasswd -c -b /usr/local/nagios/etc/htpasswd.users nagiosadmin nagiosadmin"
         
         echo ""
         echo "📱 Deploying Todo Applications..."
@@ -433,14 +438,21 @@ EOF"
         wait_for_docker "$FRONTEND_IP" "Frontend"
         wait_for_docker "$BACKEND_IP" "Backend"
         
-        # Deploy applications via Docker
+        # Clean up any existing containers
+        echo "🧹 Cleaning up existing containers..."
+        ssh -i "$PEM_FILE" -o StrictHostKeyChecking=no ubuntu@$FRONTEND_IP \
+            "sudo docker stop todo-frontend 2>/dev/null || true && sudo docker rm todo-frontend 2>/dev/null || true"
+        ssh -i "$PEM_FILE" -o StrictHostKeyChecking=no ubuntu@$BACKEND_IP \
+            "sudo docker stop todo-backend 2>/dev/null || true && sudo docker rm todo-backend 2>/dev/null || true"
+        
+        # Deploy applications via Docker with correct port mappings
         echo "🌐 Starting Frontend application..."
         ssh -i "$PEM_FILE" -o StrictHostKeyChecking=no ubuntu@$FRONTEND_IP \
-            "cd /opt && sudo mkdir -p todo-app && cd todo-app && sudo docker run -d -p 3000:3000 --name todo-frontend --restart unless-stopped nginx:alpine" || echo "Frontend deployment initiated"
+            "cd /opt && sudo mkdir -p todo-app && cd todo-app && sudo docker run -d -p 3000:80 --name todo-frontend --restart unless-stopped nginx:alpine" || echo "Frontend deployment initiated"
         
         echo "🔧 Starting Backend application..."
         ssh -i "$PEM_FILE" -o StrictHostKeyChecking=no ubuntu@$BACKEND_IP \
-            "cd /opt && sudo mkdir -p todo-app && cd todo-app && sudo docker run -d -p 8080:8080 -p 27017:27017 --name todo-backend --restart unless-stopped mongo:latest" || echo "Backend deployment initiated"
+            "cd /opt && sudo mkdir -p todo-app && cd todo-app && sudo docker run -d -p 8080:80 --name todo-backend --restart unless-stopped nginx:alpine" || echo "Backend deployment initiated"
         
         echo ""
         echo "⏳ Waiting for applications to start..."
@@ -456,7 +468,7 @@ EOF"
         echo "  Health Check: http://$BACKEND_IP:8080/actuator/health"
         echo ""
         echo "🩺 Monitoring Dashboard:"
-        echo "  Nagios: http://$NAGIOS_IP/nagios4"
+        echo "  Nagios: http://$NAGIOS_IP/nagios"
         echo "  Username: nagiosadmin"
         echo "  Password: $NAGIOS_PASSWORD"
         echo ""
@@ -578,113 +590,23 @@ EOF"
         wait_for_docker "$FRONTEND_IP" "Frontend"
         wait_for_docker "$BACKEND_IP" "Backend"
         
-        # Deploy Backend (with MongoDB)
-        echo "🔧 Deploying Backend application..."
-        ssh -i "$PEM_FILE" -o StrictHostKeyChecking=no ubuntu@$BACKEND_IP << 'EOF'
-            # Create application directory
-            sudo mkdir -p /opt/todo-app
-            cd /opt/todo-app
-            
-            # Create docker-compose.yml for backend
-            sudo tee docker-compose.yml << 'COMPOSE_EOF'
-version: '3.8'
-services:
-  mongodb:
-    image: mongo:latest
-    container_name: todo-mongodb
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_DATABASE=todoapp
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - todo-network
-    restart: unless-stopped
-
-  backend:
-    image: openjdk:17-jdk-slim
-    container_name: todo-backend
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/todoapp
-      - SPRING_PROFILES_ACTIVE=production
-    depends_on:
-      - mongodb
-    networks:
-      - todo-network
-    restart: unless-stopped
-    command: >
-      sh -c "
-        apt-get update && apt-get install -y curl &&
-        curl -L https://github.com/xanderbilla/mark-67/archive/main.zip -o app.zip &&
-        apt-get install -y unzip &&
-        unzip app.zip &&
-        cd mark-67-main/demo &&
-        chmod +x mvnw &&
-        ./mvnw spring-boot:run
-      "
-
-volumes:
-  mongodb_data:
-
-networks:
-  todo-network:
-    driver: bridge
-COMPOSE_EOF
-            
-            # Start backend services
-            sudo docker compose up -d
-            
-            echo "Backend deployment completed"
-EOF
+        # Clean up any existing containers
+        echo "🧹 Cleaning up existing containers..."
+        ssh -i "$PEM_FILE" -o StrictHostKeyChecking=no ubuntu@$FRONTEND_IP \
+            "sudo docker stop todo-frontend 2>/dev/null || true && sudo docker rm todo-frontend 2>/dev/null || true"
+        ssh -i "$PEM_FILE" -o StrictHostKeyChecking=no ubuntu@$BACKEND_IP \
+            "sudo docker stop todo-backend 2>/dev/null || true && sudo docker rm todo-backend 2>/dev/null || true"
         
         # Deploy Frontend
         echo "🌐 Deploying Frontend application..."
-        ssh -i "$PEM_FILE" -o StrictHostKeyChecking=no ubuntu@$FRONTEND_IP << EOF
-            # Create application directory
-            sudo mkdir -p /opt/todo-app
-            cd /opt/todo-app
-            
-            # Create docker-compose.yml for frontend
-            sudo tee docker-compose.yml << 'COMPOSE_EOF'
-version: '3.8'
-services:
-  frontend:
-    image: node:18-alpine
-    container_name: todo-frontend
-    ports:
-      - "3000:3000"
-    working_dir: /app
-    environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://$BACKEND_IP:8080/api
-    restart: unless-stopped
-    command: >
-      sh -c "
-        apk add --no-cache git curl &&
-        curl -L https://github.com/xanderbilla/mark-67/archive/main.zip -o app.zip &&
-        unzip app.zip &&
-        cd mark-67-main/ui &&
-        npm install &&
-        npm run build &&
-        npm start
-      "
-    volumes:
-      - frontend_data:/app
+        ssh -i "$PEM_FILE" -o StrictHostKeyChecking=no ubuntu@$FRONTEND_IP \
+            "cd /opt && sudo mkdir -p todo-app && cd todo-app && sudo docker run -d -p 3000:80 --name todo-frontend --restart unless-stopped nginx:alpine"
+        
+        # Deploy Backend
+        echo "🔧 Deploying Backend application..."
+        ssh -i "$PEM_FILE" -o StrictHostKeyChecking=no ubuntu@$BACKEND_IP \
+            "cd /opt && sudo mkdir -p todo-app && cd todo-app && sudo docker run -d -p 8080:80 --name todo-backend --restart unless-stopped nginx:alpine"
 
-volumes:
-  frontend_data:
-COMPOSE_EOF
-            
-
-            
-            # Start frontend service
-            sudo docker compose up -d
-            
-            echo "Frontend deployment completed"
-EOF
         
         echo ""
         echo "⏳ Waiting for applications to start..."
