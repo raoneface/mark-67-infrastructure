@@ -2,8 +2,6 @@ package com.project.demo.service;
 
 import com.project.demo.repository.TodoRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.actuator.health.Health;
-import org.springframework.boot.actuator.health.HealthIndicator;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
